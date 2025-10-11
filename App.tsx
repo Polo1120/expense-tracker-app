@@ -1,20 +1,20 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from "react";
+import { ThemeProvider } from "@rneui/themed";
+import { useNetworkStatus } from "./src/hooks/useNetworkStatus";
+import { NetworkBanner } from "./src/components/NetworkBanner";
+import { AuthProvider } from "./src/context/Auth/AuthProvider";
+import { AppNavigator } from "./src/navigation/AppNavigator";
+import { theme } from "./global";
 
 export default function App() {
+  const isConnected = useNetworkStatus();
+
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <ThemeProvider theme={theme}>
+      <AuthProvider>
+        {!isConnected && <NetworkBanner />}
+        <AppNavigator />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
