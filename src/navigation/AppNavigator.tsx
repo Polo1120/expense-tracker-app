@@ -1,44 +1,39 @@
 import React from "react";
-import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import { useAuth } from "../hooks/useAuth";
 import { TabsNavigator } from "./TabsNavigator";
-import LoginScreen from "../screens/LoginScreen";
-import SignUpScreen from "../screens/SignUpScreen";
-import { useAppTheme } from "../hooks/useAppTheme";
-import BudgetSettingsScreen from "../screens/BudgetSettingsScreen";
+import LoginScreen from "../screens/Auth/LoginScreen";
+import SignUpScreen from "../screens/Auth/SignUpScreen";
+import { View, ActivityIndicator } from "react-native";
 
 const Stack = createStackNavigator();
 
-export function AppNavigator() {
-  const { isAuthenticated } = useAuth();
-  const theme = useAppTheme();
+export function AppNavigator({ toggleTheme }: { toggleTheme: () => void }) {
+  const { isAuthenticated, loading } = useAuth();
 
-  const navigationTheme = {
-    ...DefaultTheme,
-    colors: {
-      ...DefaultTheme.colors,
-      background: theme.colors.background,
-    },
-  };
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
-    <NavigationContainer theme={navigationTheme}>
+    <Stack.Navigator
+      initialRouteName={isAuthenticated ? "Tabs" : "Login"}
+      screenOptions={{ headerShown: false }}
+    >
       {isAuthenticated ? (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Tabs" component={TabsNavigator} />
-          <Stack.Screen
-            name="BudgetSettings"
-            component={BudgetSettingsScreen}
-            options={{ headerShown: false }}
-          />
-        </Stack.Navigator>
+        <Stack.Screen name="Tabs" >
+          {(props) => <TabsNavigator {...props} toggleTheme={toggleTheme} />}
+        </Stack.Screen>
       ) : (
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="SignUp" component={SignUpScreen} />
-        </Stack.Navigator>
+        </>
       )}
-    </NavigationContainer>
+    </Stack.Navigator>
   );
 }

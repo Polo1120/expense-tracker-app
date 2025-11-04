@@ -2,7 +2,7 @@ import PocketBase from "pocketbase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
-const pb = new PocketBase("http://192.168.1.58:8090");
+const pb = new PocketBase("http://192.168.1.10:8090");
 
 pb.authStore.onChange(async () => {
   try {
@@ -12,7 +12,7 @@ pb.authStore.onChange(async () => {
     };
     await AsyncStorage.setItem("pb_auth", JSON.stringify(data));
   } catch (error) {
-    console.error("Error guardando sesión en AsyncStorage:", error);
+    console.error("Error saving auth data", error);
   }
 });
 
@@ -24,7 +24,7 @@ pb.authStore.onChange(async () => {
       pb.authStore.save(parsed.token, parsed.model);
     }
   } catch (error) {
-    console.error("Error cargando sesión desde AsyncStorage:", error);
+    console.error("Error loading auth data from AsyncStorage", error);
   }
 })();
 

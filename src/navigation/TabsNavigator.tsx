@@ -1,14 +1,14 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Icon, useTheme } from "@rneui/themed";
-import HomeScreen from "../screens/DashboardScreen";
-import UserScreen from "../screens/SettingsScreen";
-import type { RootTabParamList } from "../types/navigation";
-import AddExpenseScreen from "../screens/AddExpenseScreen";
+import HomeScreen from "../screens/Dashboard/DashboardScreen";
+import AddExpenseScreen from "../screens/Expense/AddExpenseScreen";
+import { SettingsNavigator } from "./SettingsNavigator";
+import { RootTabParamList } from "../types";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
-export function TabsNavigator() {
+export function TabsNavigator({ toggleTheme }: { toggleTheme: () => void }) {
   const { theme: currentTheme } = useTheme();
 
   return (
@@ -48,15 +48,17 @@ export function TabsNavigator() {
       />
 
       <Tab.Screen
-        name="Setting"
-        component={UserScreen}
+        name="Settings"
         options={{
-          title: "Setting",
+          title: "Settings",
+          headerShown: false,
           tabBarIcon: ({ color, size }) => (
             <Icon name="settings" type="material" color={color} size={size} />
           ),
         }}
-      />
+      >
+        {(props) => <SettingsNavigator {...props} toggleTheme={toggleTheme} />}
+      </Tab.Screen>
     </Tab.Navigator>
   );
 }
