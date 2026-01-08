@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import pb from "../lib/client";
+import { supabase } from "../lib/supabase";
 import { STORAGE_KEYS } from "../constants";
 
 export interface CategorySummaryData {
@@ -16,16 +16,15 @@ export const useCategorySummary = () => {
   useEffect(() => {
     const fetchExpenses = async () => {
       setLoading(true);
-      const userId = pb.authStore.model?.id;
-      if (!userId) {
-        setLoading(false);
-        return;
-      }
-
-      const savedFrequency = await AsyncStorage.getItem(STORAGE_KEYS.BUDGET_FREQUENCY);
-      if (savedFrequency) setBudgetFrequency(savedFrequency as 'month' | 'fortnight');
-
       try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
+
+        if (!userId) {
+          setLoading(false);
+          return;
+        }
+
         const now = new Date();
         let firstDay: Date;
         let lastDay: Date;
@@ -44,18 +43,21 @@ export const useCategorySummary = () => {
           }
         }
 
-        const expenseRecords: any[] = await pb
-          .collection("expenses")
-          .getFullList({
-            filter: `user.id = "${userId}" && date >= "${firstDay.toISOString().split('T')[0]}" && date <= "${lastDay.toISOString().split('T')[0]}"`,
-          });
+        const { data: expenseRecords, error: dbError } = await supabase
+          .from('expenses')
+          .select('*')
+          .eq('user_id', userId)
+          .gte('date', firstDay.toISOString().split('T')[0])
+          .lte('date', lastDay.toISOString().split('T')[0]);
 
-        const summaryData = expenseRecords.reduce((acc, expense) => {
+        if (dbError) throw dbError;
+
+        const summaryData = (expenseRecords || []).reduce((acc: any, expense: any) => {
           const category = expense.category || "Other";
           if (!acc[category]) {
             acc[category] = { name: category, total: 0 };
           }
-          acc[category].total += expense.amount;
+          acc[category].total += expense.amount; // Ensure amount exists
           return acc;
         }, {} as { [key: string]: CategorySummaryData });
 

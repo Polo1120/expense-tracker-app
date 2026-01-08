@@ -5,7 +5,6 @@ import { Picker } from "@react-native-picker/picker";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { EXPENSE_CATEGORIES } from "../../constants";
 import { useExpenseForm } from "../../hooks/useExpenseForm";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AddExpenseScreen() {
   const { theme } = useTheme();
@@ -32,18 +31,24 @@ export default function AddExpenseScreen() {
   const styles = useMemo(
     () =>
       StyleSheet.create({
-        card: {
+        container: {
+          flex: 1,
           paddingHorizontal: 16,
+          paddingTop: 16,
+          backgroundColor: theme.colors.background,
         },
         selectContainer: {
           borderRadius: 8,
           marginBottom: 12,
           overflow: "hidden",
-          backgroundColor: theme.colors.grey0,
+          backgroundColor:
+            theme.mode === "dark" ? theme.colors.grey0 : theme.colors.white,
+          borderWidth: 1,
+          borderColor: theme.colors.grey0,
         },
         picker: {
           height: 56,
-          color: theme.colors.white,
+          color: theme.colors.adaptiveColor,
         },
         dateContainer: {
           marginTop: 16,
@@ -66,7 +71,10 @@ export default function AddExpenseScreen() {
         },
         dateButton: {
           height: 56,
-          backgroundColor: theme.colors.grey0,
+          backgroundColor:
+            theme.mode === "dark" ? theme.colors.grey0 : theme.colors.white,
+          borderWidth: 1,
+          borderColor: theme.colors.grey0,
           borderRadius: 10,
           marginBottom: 10,
         },
@@ -75,109 +83,109 @@ export default function AddExpenseScreen() {
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <View style={styles.card}>
-        <Input
-          placeholder="Expense name"
-          value={formData.name}
-          onChangeText={(value) => handleChange("name", value)}
-          errorMessage={errors.name}
-        />
+    <View style={styles.container}>
+      <Input
+        placeholder="Expense name"
+        value={formData.name}
+        onChangeText={(value) => handleChange("name", value)}
+        errorMessage={errors.name}
+      />
 
-        <Input
-          placeholder="Amount"
-          keyboardType="numeric"
-          value={formData.amount ? formData.amount.toString() : ""}
-          onChangeText={(value) => handleChange("amount", value)}
-          errorMessage={errors.amount}
-        />
+      <Input
+        placeholder="Amount"
+        keyboardType="numeric"
+        value={formData.amount ? formData.amount.toString() : ""}
+        onChangeText={(value) => handleChange("amount", value)}
+        errorMessage={errors.amount}
+      />
 
-        <View style={styles.selectContainer}>
-          <Picker
-            selectedValue={formData.category}
-            onValueChange={(v) => handleChange("category", v)}
-            style={styles.picker}
-            dropdownIconColor="#888"
-          >
-            <Picker.Item label="Category" value="" />
-            {Object.keys(EXPENSE_CATEGORIES).map((c) => (
-              <Picker.Item key={c} label={c} value={c} />
-            ))}
-          </Picker>
-        </View>
-        {errors.category ? (
-          <Text style={styles.errorText}>{errors.category}</Text>
-        ) : null}
-
-        <View style={styles.dateContainer}>
-          <Button
-            title={formData.date ? formData.date : "Date"}
-            onPress={() => setShowDatePicker(true)}
-            buttonStyle={styles.dateButton}
-            titleStyle={{
-              color: formData.date ? theme.colors.white : theme.colors.grey3,
-            }}
-            type="clear"
-          />
-          {errors.date ? (
-            <Text style={styles.errorText}>{errors.date}</Text>
-          ) : null}
-        </View>
-
-        {showDatePicker && (
-          <DateTimePicker
-            value={formData.date ? new Date(formData.date) : new Date()}
-            mode="date"
-            display={Platform.OS === "ios" ? "spinner" : "default"}
-            onChange={onDateChange}
-          />
-        )}
-
-        <ButtonGroup
-          buttons={["Expense", "Income"]}
-          selectedIndex={formData.type === "expense" ? 0 : 1}
-          onPress={(i) => handleChange("type", i === 0 ? "expense" : "income")}
-          containerStyle={{
-            borderWidth: 0,
-            width: "100%",
-            backgroundColor: theme.colors.grey0,
-            marginBottom: 20,
-            marginHorizontal: 0,
-            padding: 4,
-            borderRadius: 12,
-          }}
-          innerBorderStyle={{ width: 0 }}
-          buttonStyle={{
-            backgroundColor: theme.colors.grey0,
-            borderRadius: 12,
-          }}
-          selectedButtonStyle={{
-            backgroundColor:
-              theme.mode === "dark" ? theme.colors.black : theme.colors.white,
-            borderRadius: 12,
-          }}
-          textStyle={{
-            color: theme.colors.grey3,
-          }}
-          selectedTextStyle={{
-            color:
-              theme.mode === "dark" ? theme.colors.white : theme.colors.black,
-          }}
-        />
-
-        {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-        {successMessage ? (
-          <Text style={styles.successText}>{successMessage}</Text>
-        ) : null}
-
-        <Button
-          title={loading ? "Saving..." : "Save Expense"}
-          onPress={handleSubmit}
-          loading={loading}
-          containerStyle={styles.buttonContainer}
-        />
+      <View style={styles.selectContainer}>
+        <Picker
+          selectedValue={formData.category}
+          onValueChange={(v) => handleChange("category", v)}
+          style={styles.picker}
+          dropdownIconColor="#888"
+        >
+          <Picker.Item label="Category" value="" />
+          {Object.keys(EXPENSE_CATEGORIES).map((c) => (
+            <Picker.Item key={c} label={c} value={c} />
+          ))}
+        </Picker>
       </View>
-    </SafeAreaView>
+      {errors.category ? (
+        <Text style={styles.errorText}>{errors.category}</Text>
+      ) : null}
+
+      <View style={styles.dateContainer}>
+        <Button
+          title={formData.date ? formData.date : "Date"}
+          onPress={() => setShowDatePicker(true)}
+          buttonStyle={styles.dateButton}
+          titleStyle={{
+            color: formData.date
+              ? theme.colors.adaptiveColor
+              : theme.colors.grey3,
+          }}
+          type="clear"
+        />
+        {errors.date ? (
+          <Text style={styles.errorText}>{errors.date}</Text>
+        ) : null}
+      </View>
+
+      {showDatePicker && (
+        <DateTimePicker
+          value={formData.date ? new Date(formData.date) : new Date()}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={onDateChange}
+        />
+      )}
+
+      <ButtonGroup
+        buttons={["Expense", "Income"]}
+        selectedIndex={formData.type === "expense" ? 0 : 1}
+        onPress={(i) => handleChange("type", i === 0 ? "expense" : "income")}
+        containerStyle={{
+          borderWidth: 0,
+          width: "100%",
+          backgroundColor: theme.colors.grey0,
+          marginBottom: 20,
+          marginHorizontal: 0,
+          padding: 4,
+          borderRadius: 12,
+        }}
+        innerBorderStyle={{ width: 0 }}
+        buttonStyle={{
+          backgroundColor: theme.colors.grey0,
+          borderRadius: 12,
+        }}
+        selectedButtonStyle={{
+          backgroundColor:
+            theme.mode === "dark" ? theme.colors.black : theme.colors.white,
+          borderRadius: 12,
+        }}
+        textStyle={{
+          color: theme.colors.grey3,
+        }}
+        selectedTextStyle={{
+          color:
+            theme.mode === "dark" ? theme.colors.white : theme.colors.black,
+        }}
+      />
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+      {successMessage ? (
+        <Text style={styles.successText}>{successMessage}</Text>
+      ) : null}
+
+      <Button
+        title={loading ? "Saving..." : "Save Expense"}
+        onPress={handleSubmit}
+        loading={loading}
+        containerStyle={styles.buttonContainer}
+      />
+    </View>
   );
 }

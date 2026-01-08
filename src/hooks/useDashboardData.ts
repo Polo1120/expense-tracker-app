@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import pb from "../lib/client";
+import { supabase } from "../lib/supabase";
 import { STORAGE_KEYS } from "../constants";
 import { Expense } from "../types";
 
@@ -10,6 +10,7 @@ type BudgetMode = "budget" | "total_spend";
 interface DashboardData {
   budgetAmount: number;
   budgetMode: BudgetMode;
+  budgetFrequency: 'month' | 'fortnight';
   totalExpenses: number;
   totalIncome: number;
   loading: boolean;
@@ -29,9 +30,6 @@ export function useDashboardData(): DashboardData {
     setLoading(true);
     setError(null);
     try {
-      // Health check
-      await pb.health.check();
-
       const [savedBudget, savedMode, savedFrequency] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEYS.BUDGET_AMOUNT),
         AsyncStorage.getItem(STORAGE_KEYS.BUDGET_MODE),
@@ -42,7 +40,9 @@ export function useDashboardData(): DashboardData {
       if (savedMode) setBudgetMode(savedMode as BudgetMode);
       if (savedFrequency) setBudgetFrequency(savedFrequency as 'month' | 'fortnight');
 
-      const userId = pb.authStore.model?.id;
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+
       if (!userId) return;
 
       const now = new Date();
@@ -63,16 +63,22 @@ export function useDashboardData(): DashboardData {
         }
       }
 
-      const expenses = await pb.collection("expenses").getFullList<Expense>({
-        filter: `user.id = "${userId}" && date >= "${firstDay.toISOString().split('T')[0]}" && date <= "${lastDay.toISOString().split('T')[0]}"`,
-      });
+      // Supabase query
+      const { data: expenses, error: dbError } = await supabase
+        .from('expenses')
+        .select('*')
+        .eq('user_id', userId) // Assuming user_id column exists
+        .gte('date', firstDay.toISOString().split('T')[0])
+        .lte('date', lastDay.toISOString().split('T')[0]);
 
-      const expensesTotal = expenses
-        .filter((exp) => exp.type === "expense")
-        .reduce((acc, exp) => acc + (exp.amount || 0), 0);
-      const incomeTotal = expenses
-        .filter((exp) => exp.type === "income")
-        .reduce((acc, exp) => acc + (exp.amount || 0), 0);
+      if (dbError) throw dbError;
+
+      const expensesTotal = (expenses || [])
+        .filter((exp: any) => exp.type === "expense")
+        .reduce((acc: number, exp: any) => acc + (exp.amount || 0), 0);
+      const incomeTotal = (expenses || [])
+        .filter((exp: any) => exp.type === "income")
+        .reduce((acc: number, exp: any) => acc + (exp.amount || 0), 0);
 
       setTotalExpenses(expensesTotal);
       setTotalIncome(incomeTotal);
@@ -87,20 +93,27 @@ export function useDashboardData(): DashboardData {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [])
+    }, [budgetFrequency]) // Added dependency as it affects data loading
   );
 
   useEffect(() => {
-    const unsubscribe = pb.collection("expenses").subscribe("*", (e) => {
-      if (e.action === "create" || e.action === "update" || e.action === "delete") {
-        loadData();
-      }
-    });
+    // Realtime subscription
+    const channel = supabase
+      .channel('public:expenses')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'expenses' },
+        (payload: any) => {
+          // Ideally check if payload affects current user, but reloading is safe
+          loadData();
+        }
+      )
+      .subscribe();
 
     return () => {
-      pb.collection("expenses").unsubscribe("*");
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [budgetFrequency]);
 
   return { budgetAmount, budgetMode, totalExpenses, totalIncome, loading, error, budgetFrequency };
 }

@@ -3,7 +3,6 @@ import { View, StyleSheet, ActivityIndicator } from "react-native";
 import { Text, ButtonGroup, Input, Button, useTheme } from "@rneui/themed";
 import { useBudgetSettings } from "../../hooks/useBudgetSettings";
 import { useCurrency } from "../../hooks/useCurrency";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function BudgetSettingsScreen() {
   const { theme } = useTheme();
@@ -24,23 +23,20 @@ export default function BudgetSettingsScreen() {
     () =>
       StyleSheet.create({
         container: {
-          padding: 16,
-        },
-        label: {
-          color: theme.colors.grey3,
-          marginBottom: 6,
-          fontSize: 14,
-          fontWeight: "600",
+          paddingHorizontal: 16,
+          flex: 1,
+          backgroundColor: theme.colors.background,
+          paddingTop: 16,
         },
         group: {
-          borderRadius: 10,
+          borderRadius: 12,
           marginBottom: 20,
         },
         groupButton: {
           backgroundColor: theme.colors.grey5,
         },
         selectedButton: {
-          backgroundColor: theme.colors.primary,
+          backgroundColor: theme.colors.black,
         },
         groupText: {
           color: theme.colors.white,
@@ -87,42 +83,39 @@ export default function BudgetSettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <View style={styles.container}>
-        <Text style={styles.label}>Mode</Text>
-        <ButtonGroup
-          buttons={["Budget Mode", "Total Spend Mode"]}
-          selectedIndex={budgetMode === "budget" ? 0 : 1}
-          onPress={(i) => setBudgetMode(i === 0 ? "budget" : "total")}
-          containerStyle={styles.group}
-          buttonStyle={styles.groupButton}
-          textStyle={styles.groupText}
-          selectedButtonStyle={styles.selectedButton}
-        />
+    <View style={styles.container}>
+      <ButtonGroup
+        buttons={["Budget Mode", "Total Spend Mode"]}
+        selectedIndex={budgetMode === "budget" ? 0 : 1}
+        onPress={(i) => setBudgetMode(i === 0 ? "budget" : "total")}
+        containerStyle={styles.group}
+        buttonStyle={styles.groupButton}
+        textStyle={styles.groupText}
+        selectedButtonStyle={styles.selectedButton}
+      />
 
-        {budgetMode === "budget" && (
-          <>
-            <Input
-              placeholder={`Budget Amount (${currency})`}
-              keyboardType="numeric"
-              value={budgetAmount}
-              onChangeText={setBudgetAmount}
-              inputStyle={{ color: theme.colors.white }}
-              inputContainerStyle={styles.inputContainer}
-            />
-          </>
-        )}
+      {budgetMode === "budget" && (
+        <>
+          <Input
+            placeholder={`Budget Amount (${currency})`}
+            keyboardType="numeric"
+            value={budgetAmount}
+            onChangeText={setBudgetAmount}
+            inputStyle={{ color: theme.colors.white }}
+            inputContainerStyle={styles.inputContainer}
+          />
+        </>
+      )}
 
-        {message ? <Text style={styles.message}>{message}</Text> : null}
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+      {message ? <Text style={styles.message}>{message}</Text> : null}
+      {error ? <Text style={styles.error}>{error}</Text> : null}
 
-        <Button
-          title={saving ? "Saving..." : "Save"}
-          onPress={handleSave}
-          loading={saving}
-          containerStyle={styles.saveButton}
-        />
-      </View>
-    </SafeAreaView>
+      <Button
+        title={saving ? "Saving..." : "Save"}
+        onPress={handleSave}
+        loading={saving}
+        containerStyle={styles.saveButton}
+      />
+    </View>
   );
 }

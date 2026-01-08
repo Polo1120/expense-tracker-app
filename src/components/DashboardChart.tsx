@@ -32,6 +32,8 @@ export const DashboardChart: React.FC<DashboardChartProps> = ({
       borderWidth: 1,
       borderColor: theme.colors.grey0,
       borderRadius: 12,
+      alignItems: "center",
+      justifyContent: "center",
     },
     legendContainer: {
       flexDirection: "row",
@@ -106,26 +108,29 @@ export const DashboardChart: React.FC<DashboardChartProps> = ({
       <View style={styles.chartContainer}>
         <LineChart
           data={data}
-          width={screenWidth - 32}
+          width={Math.floor(screenWidth - 32)}
           height={220}
+          fromZero
+          withDots={false}
+          withShadow={false}
+          withInnerLines={false}
+          withHorizontalLines={false}
+          withVerticalLines={false}
+          withHorizontalLabels={false}
           chartConfig={{
             backgroundGradientFrom: theme.colors.background,
             backgroundGradientTo: theme.colors.background,
             decimalPlaces: 0,
-            color: (opacity = 1) => `rgba(35, 42, 48, ${opacity})`,
-            labelColor: (opacity = 1) => `rgba(97, 117, 138, ${opacity})`,
-            propsForDots: {
-              r: "0",
-            },
+            color: () => `rgb(197, 117, 138)`,
+            labelColor: () => `rgb(97, 117, 138)`,
           }}
           bezier
-          withInnerLines={false}
-          withHorizontalLabels={false}
           style={{
-            marginVertical: 8,
             borderRadius: 16,
+
           }}
         />
+
       </View>
       <View style={styles.legendContainer}>
         {data.legend.map((legend, i) => (
@@ -141,12 +146,6 @@ export const DashboardChart: React.FC<DashboardChartProps> = ({
             <Text style={styles.legendText}>{legend}</Text>
           </View>
         ))}
-      </View>
-      <View style={styles.summaryContainer}>
-        <Text style={styles.summaryText}>
-          This Month: {thisMonthPercentage.toFixed(1)}%
-        </Text>
-        <Text style={styles.summaryText}>Balance: ${balance.toFixed(2)}</Text>
       </View>
     </View>
   );

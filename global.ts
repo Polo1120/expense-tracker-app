@@ -3,6 +3,7 @@ import { createTheme } from "@rneui/themed";
 declare module "@rneui/themed" {
   export interface Colors {
     bottomBar?: string;
+    adaptiveColor?: string;
   }
 }
 
@@ -23,6 +24,7 @@ export const theme = createTheme({
     success: "#4CAF50",
     warning: "#FF9800",
     bottomBar: "#f0f0f0",
+    adaptiveColor: "#000000",
   },
   darkColors: {
     primary: "#268AED",
@@ -40,6 +42,7 @@ export const theme = createTheme({
     success: "#4CAF50",
     warning: "#FF9800",
     bottomBar: "#293038",
+    adaptiveColor: "#FFFFFF",
   },
   mode: "dark",
   components: {
@@ -66,11 +69,13 @@ export const theme = createTheme({
         borderRadius: 8,
         height: 56,
         paddingHorizontal: 10,
-        backgroundColor: theme.mode === "dark" ? "#293038" : "transparent",
-        borderColor: theme.mode === "dark" ? "#293038" : "#CFDBE8",
+        backgroundColor:
+          theme.mode === "dark" ? theme.colors.grey0 : "transparent",
+        borderColor: theme.colors.grey0,
       },
       inputStyle: {
         fontSize: 16,
+        color: theme.colors.adaptiveColor,
         fontFamily: "Inter-Regular",
       },
     }),

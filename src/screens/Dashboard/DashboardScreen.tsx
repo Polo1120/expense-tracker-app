@@ -3,7 +3,6 @@ import { View, StyleSheet, ScrollView } from "react-native";
 import { Text, LinearProgress, useTheme } from "@rneui/themed";
 import { useDashboardData } from "../../hooks/useDashboardData";
 import { useFormatCurrency } from "../../utils/useFormatCurrency";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { DashboardChart } from "../../components/DashboardChart";
 import { CategorySummary } from "../../components/CategorySummary";
 
@@ -32,10 +31,10 @@ export default function DashboardScreen() {
       StyleSheet.create({
         container: {
           flex: 1,
-
           paddingHorizontal: 16,
+          paddingTop: 16,
+          backgroundColor: theme.colors.background,
         },
-        card: {},
         containerValues: {
           display: "flex",
           flexWrap: "wrap",
@@ -63,25 +62,23 @@ export default function DashboardScreen() {
           fontSize: 16,
           textAlign: "left",
           fontFamily: "Inter-Medium",
-          color:
-            theme.mode === "dark" ? theme.colors.white : theme.colors.black,
+          color: theme.colors.adaptiveColor,
           marginBottom: 6,
         },
         highlight: {
           textAlign: "left",
           fontFamily: "Inter-Bold",
-          color:
-            theme.mode === "dark" ? theme.colors.white : theme.colors.black,
+          color: theme.colors.adaptiveColor,
           fontSize: 18,
         },
         titleBudget: {
           fontSize: 14,
+          paddingBottom: 16,
           color: theme.colors.grey3,
         },
         BudgetTitle: {
           textAlign: "left",
-          color:
-            theme.mode === "dark" ? theme.colors.white : theme.colors.black,
+          color: theme.colors.adaptiveColor,
           marginBlock: 32,
         },
         progress: {
@@ -137,80 +134,77 @@ export default function DashboardScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <ScrollView style={styles.container}>
-        <View style={styles.card}>
-          {budgetMode === "budget" && (
-            <Text style={styles.titleBudget}>Monthly Budget</Text>
-          )}
-
-          <View style={styles.containerValues}>
-            <View style={styles.contentValues}>
-              <Text style={styles.text}>Income</Text>
-              <Text style={styles.highlight}>
-                {formatCurrency(
-                  budgetMode === "budget" ? budgetAmount : totalIncome
-                )}
-              </Text>
-            </View>
-
-            <View style={styles.contentValues}>
-              <Text style={styles.text}>Expenses</Text>
-              <Text style={styles.highlight}>
-                {formatCurrency(totalExpenses)}
-              </Text>
-            </View>
-
-            <View style={styles.contentValuesBalance}>
-              <Text style={styles.text}>Balance</Text>
-              <Text
-                style={[
-                  styles.highlight,
-                  {
-                    color:
-                      remaining < 0
-                        ? theme.colors.error
-                        : theme.mode === "dark"
-                        ? theme.colors.white
-                        : theme.colors.black,
-                  },
-                ]}
-              >
-                {formatCurrency(remaining)}
-              </Text>
-            </View>
+    <ScrollView style={styles.container}>
+      {budgetMode === "budget" && (
+        <Text style={styles.titleBudget}>Monthly Budget</Text>
+      )}
+      <View>
+        <View style={styles.containerValues}>
+          <View style={styles.contentValues}>
+            <Text style={styles.text}>Income</Text>
+            <Text style={styles.highlight}>
+              {formatCurrency(
+                budgetMode === "budget" ? budgetAmount : totalIncome
+              )}
+            </Text>
           </View>
 
-          {budgetMode === "budget" && (
-            <>
-              <View>
-                <Text h3 style={styles.BudgetTitle}>
-                  Budget
-                </Text>
-                <Text style={styles.text}>Remaining</Text>
-                <LinearProgress
-                  value={percent > 1 ? 1 : percent}
-                  variant="determinate"
-                  color={
+          <View style={styles.contentValues}>
+            <Text style={styles.text}>Expenses</Text>
+            <Text style={styles.highlight}>
+              {formatCurrency(totalExpenses)}
+            </Text>
+          </View>
+
+          <View style={styles.contentValuesBalance}>
+            <Text style={styles.text}>Balance</Text>
+            <Text
+              style={[
+                styles.highlight,
+                {
+                  color:
                     remaining < 0
                       ? theme.colors.error
                       : theme.mode === "dark"
                       ? theme.colors.white
-                      : theme.colors.black
-                  }
-                  style={styles.progress}
-                />
-
-                <Text style={styles.percentText}>
-                  {(percent * 100).toFixed(1)}% used
-                </Text>
-              </View>
-            </>
-          )}
+                      : theme.colors.black,
+                },
+              ]}
+            >
+              {formatCurrency(remaining)}
+            </Text>
+          </View>
         </View>
-        <DashboardChart budgetMode={budgetMode} />
-        <CategorySummary />
-      </ScrollView>
-    </SafeAreaView>
+
+        {budgetMode === "budget" && (
+          <>
+            <View>
+              <Text h3 style={styles.BudgetTitle}>
+                Budget
+              </Text>
+              <Text style={styles.text}>Remaining</Text>
+              <LinearProgress
+                value={percent > 1 ? 1 : percent}
+                variant="determinate"
+                color={
+                  remaining < 0
+                    ? theme.colors.error
+                    : theme.mode === "dark"
+                    ? theme.colors.white
+                    : theme.colors.black
+                }
+                style={styles.progress}
+              />
+
+              <Text style={styles.percentText}>
+                {(percent * 100).toFixed(1)}% used
+              </Text>
+            </View>
+          </>
+        )}
+      </View>
+      <DashboardChart budgetMode={budgetMode} />
+      <CategorySummary />
+    </ScrollView>
   );
 }

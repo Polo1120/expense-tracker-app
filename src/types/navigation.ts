@@ -3,6 +3,7 @@ import type { StackNavigationProp } from "@react-navigation/stack";
 
 export type RootTabParamList = {
   Dashboard: undefined;
+  History: undefined;
   Add: undefined;
   Settings: undefined;
   SignUp: undefined;
@@ -14,6 +15,8 @@ export type SettingsStackParamList = {
   BudgetSettings: undefined;
   Profile: undefined;
   Security: undefined;
+  Currency: undefined;
+  ServerSettings: undefined;
 };
 
 export type RootTabNavigationProp = BottomTabNavigationProp<RootTabParamList>;

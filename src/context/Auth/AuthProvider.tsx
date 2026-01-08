@@ -1,31 +1,72 @@
 import { useState, useEffect, type ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import pb from "../../lib/client";
+import { supabase } from "../../lib/supabase";
 import { AuthContext } from "./AuthContext";
 import type { User } from "../../types/User";
+import { Session } from "@supabase/supabase-js";
 
 interface Props {
   children: ReactNode;
 }
 
 export function AuthProvider({ children }: Props) {
-  const [user, setUser] = useState<User | null>(pb.authStore.model as User | null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  // Helper to map Supabase user to our User type
+  const mapUser = (sessionUser: any): User | null => {
+    if (!sessionUser) return null;
+    return {
+      id: sessionUser.id,
+      email: sessionUser.email || "",
+      name: sessionUser.user_metadata?.name || "",
+      avatar: sessionUser.user_metadata?.avatar || "",
+      created: sessionUser.created_at,
+      updated: sessionUser.updated_at || sessionUser.created_at,
+    };
+  };
 
   useEffect(() => {
-    const unsubscribe = pb.authStore.onChange(() => {
-      setUser(pb.authStore.model as User | null);
+    const initializeUser = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          setUser(mapUser(session.user));
+          setIsAuthenticated(true);
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
+      } catch (e) {
+        console.error("Error checking session", e);
+      }
+    };
+    initializeUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
+      if (session?.user) {
+        setUser(mapUser(session.user));
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
     });
 
-    return () => unsubscribe?.();
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
     setLoading(true);
     setError(null);
     try {
-      await pb.collection("users").authWithPassword<User>(email, password);
+      const { error: authError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+      if (authError) throw authError;
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -37,13 +78,17 @@ export function AuthProvider({ children }: Props) {
     setLoading(true);
     setError(null);
     try {
-      await pb.collection("users").create({
+      const { error: authError, data } = await supabase.auth.signUp({
         email,
         password,
-        passwordConfirm: password,
-        name,
+        options: {
+          data: {
+            name: name,
+          }
+        }
       });
-      await pb.collection("users").authWithPassword<User>(email, password);
+      if (authError) throw authError;
+      // If auto-confirm is off, user might not be logged in immediately depending on settings
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -52,16 +97,18 @@ export function AuthProvider({ children }: Props) {
   };
 
   const logout = async () => {
-    pb.authStore.clear();
-    await AsyncStorage.removeItem("themeMode");
-    await AsyncStorage.removeItem("hasSeenWelcomeScreen");
+    await supabase.auth.signOut();
+    await AsyncStorage.removeItem("themeMode"); // Keep valid cleanup
+    // await AsyncStorage.removeItem("hasSeenWelcomeScreen"); // Maybe keep this?
+    setUser(null);
+    setIsAuthenticated(false);
   };
 
   return (
     <AuthContext.Provider
       value={{
         user,
-        isAuthenticated: pb.authStore.isValid,
+        isAuthenticated,
         loading,
         error,
         signup,

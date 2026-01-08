@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import pb from "../lib/client";
+import { supabase } from "../lib/supabase";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { STORAGE_KEYS } from "../constants";
 import { useTheme } from "@rneui/themed";
@@ -16,24 +16,26 @@ export const useChartData = (budgetMode: "budget" | "total_spend") => {
       setLoading(true);
       setError(null);
       try {
-        // Health check
-        await pb.health.check();
+        const { data: { session } } = await supabase.auth.getSession();
+        const userId = session?.user?.id;
 
-        const userId = pb.authStore.model?.id;
         if (!userId) {
           setLoading(false);
           return;
         }
 
         try {
-          const [expenseRecords, savedBudget] = await Promise.all([
-            pb.collection("expenses").getFullList<Expense>({
-              filter: `user.id = "${userId}"`,
-            }),
-            AsyncStorage.getItem(STORAGE_KEYS.BUDGET_AMOUNT),
-          ]);
+          // Fetch expenses from Supabase
+          const { data: expenseRecords, error: dbError } = await supabase
+            .from('expenses')
+            .select('*')
+            .eq('user_id', userId);
 
-          setExpenses(expenseRecords);
+          if (dbError) throw dbError;
+
+          const savedBudget = await AsyncStorage.getItem(STORAGE_KEYS.BUDGET_AMOUNT);
+
+          setExpenses((expenseRecords || []) as unknown as Expense[]); // Cast for now, ensuring types match later
           if (savedBudget) {
             setBudgetAmount(Number(savedBudget));
           }
@@ -42,15 +44,15 @@ export const useChartData = (budgetMode: "budget" | "total_spend") => {
           setError("Failed to fetch chart data. Please try again later.");
         }
       } catch (err) {
-        console.error("Server is not reachable:", err);
-        setError("Server is not reachable. Please check your connection.");
+        console.error("Error fetching session:", err);
+        setError("Error fetching data. Please try again.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [budgetMode]); // Added budgetMode dependency if it matters, or keep empty if independent
 
   const data = useMemo(() => {
     const months = Array.from({ length: 6 }, (_, i) => {

@@ -8,6 +8,7 @@ import BudgetSettingsScreen from "../screens/Settings/BudgetSettingsScreen";
 import ProfileScreen from "../screens/Settings/ProfileScreen";
 import SecurityScreen from "../screens/Settings/SecurityScreen";
 import { CurrencyScreen } from "../screens/Settings/CurrencyScreen";
+import ServerScreen from "../screens/Settings/ServerScreen";
 import type { SettingsStackParamList } from "../types/navigation";
 import { useTheme } from "@rneui/themed";
 
@@ -24,9 +25,14 @@ export function SettingsNavigator({
       <Stack.Screen
         name="SettingsMain"
         options={{
+          headerTitleAlign: "center",
           title: "Settings",
-          headerStyle: { backgroundColor: currentTheme.colors.background },
-          headerTintColor: currentTheme.colors.white,
+          headerStyle: {
+            backgroundColor: currentTheme.colors.background,
+            borderBottomWidth: 1,
+            borderBottomColor: currentTheme.colors.grey0,
+          },
+          headerTintColor: currentTheme.colors.adaptiveColor,
         }}
       >
         {(props) => <SettingsScreen {...props} toggleTheme={toggleTheme} />}
@@ -36,8 +42,13 @@ export function SettingsNavigator({
         component={BudgetSettingsScreen}
         options={{
           title: "Budget Settings",
-          headerStyle: { backgroundColor: currentTheme.colors.background },
-          headerTintColor: currentTheme.colors.white,
+          headerTitleAlign: "center",
+          headerStyle: {
+            backgroundColor: currentTheme.colors.background,
+            borderBottomWidth: 1,
+            borderBottomColor: currentTheme.colors.grey0,
+          },
+          headerTintColor: currentTheme.colors.adaptiveColor,
         }}
       />
       <Stack.Screen
@@ -45,8 +56,13 @@ export function SettingsNavigator({
         component={ProfileScreen}
         options={{
           title: "Profile",
-          headerStyle: { backgroundColor: currentTheme.colors.background },
-          headerTintColor: currentTheme.colors.white,
+          headerTitleAlign: "center",
+          headerStyle: {
+            backgroundColor: currentTheme.colors.background,
+            borderBottomWidth: 1,
+            borderBottomColor: currentTheme.colors.grey0,
+          },
+          headerTintColor: currentTheme.colors.adaptiveColor,
         }}
       />
       <Stack.Screen
@@ -54,8 +70,13 @@ export function SettingsNavigator({
         component={SecurityScreen}
         options={{
           title: "Security",
-          headerStyle: { backgroundColor: currentTheme.colors.background },
-          headerTintColor: currentTheme.colors.white,
+          headerTitleAlign: "center",
+          headerStyle: {
+            backgroundColor: currentTheme.colors.background,
+            borderBottomWidth: 1,
+            borderBottomColor: currentTheme.colors.grey0,
+          },
+          headerTintColor: currentTheme.colors.adaptiveColor,
         }}
       />
       <Stack.Screen
@@ -63,8 +84,27 @@ export function SettingsNavigator({
         component={CurrencyScreen}
         options={{
           title: "Currency",
-          headerStyle: { backgroundColor: currentTheme.colors.background },
-          headerTintColor: currentTheme.colors.white,
+          headerTitleAlign: "center",
+          headerStyle: {
+            backgroundColor: currentTheme.colors.background,
+            borderBottomWidth: 1,
+            borderBottomColor: currentTheme.colors.grey0,
+          },
+          headerTintColor: currentTheme.colors.adaptiveColor,
+        }}
+      />
+      <Stack.Screen
+        name="ServerSettings"
+        component={ServerScreen}
+        options={{
+          title: "Server Settings",
+          headerTitleAlign: "center",
+          headerStyle: {
+            backgroundColor: currentTheme.colors.background,
+            borderBottomWidth: 1,
+            borderBottomColor: currentTheme.colors.grey0,
+          },
+          headerTintColor: currentTheme.colors.adaptiveColor,
         }}
       />
     </Stack.Navigator>

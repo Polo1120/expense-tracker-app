@@ -10,7 +10,6 @@ import { Text, Icon, useTheme } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
 import type { SettingsStackNavigationProp } from "../../types/navigation";
 import { useAuth } from "../../hooks/useAuth";
-import { SafeAreaView } from "react-native-safe-area-context";
 
 interface SettingItemProps {
   title: string;
@@ -74,6 +73,9 @@ export default function SettingsScreen({
     () =>
       StyleSheet.create({
         container: {
+          flex: 1,
+          backgroundColor: theme.colors.background,
+          paddingTop: 16,
           paddingHorizontal: 16,
         },
         section: {
@@ -92,53 +94,52 @@ export default function SettingsScreen({
   );
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <ScrollView style={styles.container}>
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Dashboard & Budget</Text>
-          <SettingItem
-            title="Dashboard & Budget"
-            onPress={() => navigation.navigate("BudgetSettings")}
-          />
-        </View>
+    <ScrollView style={styles.container}>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Dashboard & Budget</Text>
+        <SettingItem
+          title="Dashboard & Budget"
+          onPress={() => navigation.navigate("BudgetSettings")}
+        />
+      </View>
 
-        {/* --- Section: Account --- */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
-          <SettingItem
-            title="Profile"
-            onPress={() => navigation.navigate("Profile")}
-          />
-          <SettingItem
-            title="Security"
-            onPress={() => navigation.navigate("Security")}
-          />
-        </View>
+      
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Account</Text>
+        <SettingItem
+          title="Profile"
+          onPress={() => navigation.navigate("Profile")}
+        />
+        <SettingItem
+          title="Security"
+          onPress={() => navigation.navigate("Security")}
+        />
+      </View>
 
-        {/* --- Section: App Settings --- */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>App Settings</Text>
-          <SettingItem
-            title="Dark Mode"
-            rightComponent={
-              <Switch
-                value={theme.mode === "dark"}
-                onValueChange={toggleTheme}
-              />
-            }
-          />
-          <SettingItem
-            title="Currency"
-            onPress={() => navigation.navigate("Currency")}
-          />
-          <SettingItem title="Notifications" />
-        </View>
+     
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>App Settings</Text>
+        <SettingItem
+          title="Dark Mode"
+          rightComponent={
+            <Switch value={theme.mode === "dark"} onValueChange={toggleTheme} />
+          }
+        />
+        <SettingItem
+          title="Currency"
+          onPress={() => navigation.navigate("Currency")}
+        />
+        <SettingItem
+          title="Server Settings"
+          onPress={() => navigation.navigate("ServerSettings")}
+        />
+        <SettingItem title="Notifications" />
+      </View>
 
-        {/* --- Section: Logout --- */}
-        <View style={styles.section}>
-          <SettingItem title="Logout" onPress={logout} />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+     
+      <View style={styles.section}>
+        <SettingItem title="Logout" onPress={logout} />
+      </View>
+    </ScrollView>
   );
 }

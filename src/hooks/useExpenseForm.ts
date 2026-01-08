@@ -1,5 +1,5 @@
 import { useState } from "react";
-import pb from "../lib/client";
+import { supabase } from "../lib/supabase";
 import { ExpenseFormData } from "../types";
 
 export function useExpenseForm() {
@@ -64,17 +64,24 @@ export function useExpenseForm() {
     setError(null);
 
     try {
-      const userId = pb.authStore.model?.id;
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+
       if (!userId) {
         throw new Error("User not authenticated");
       }
 
-      const expenseData: ExpenseFormData = {
+      const expenseData = {
         ...formData,
-        user: userId,
+        user_id: userId, // Changed user to user_id to match Supabase convention
       };
 
-      await pb.collection("expenses").create(expenseData);
+      const { error: insertError } = await supabase
+        .from('expenses')
+        .insert(expenseData);
+
+      if (insertError) throw insertError;
+
       setSuccessMessage("Transaction saved successfully!");
       setFormData({ name: "", amount: 0, category: "", date: "", type: "expense" });
     } catch (error: any) {

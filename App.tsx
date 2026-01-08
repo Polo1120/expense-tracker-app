@@ -36,6 +36,7 @@ export default function App() {
         const seenWelcome = await AsyncStorage.getItem("hasSeenWelcomeScreen");
         const savedTheme = await AsyncStorage.getItem("themeMode");
 
+
         if (savedTheme) {
           setThemeMode(savedTheme as "light" | "dark");
         }

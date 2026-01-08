@@ -1,10 +1,12 @@
 export interface Expense {
   id: string;
+  name: string; // Added missing name field
   amount: number;
-  user: string;
+  user_id: string; // Changed from user to user_id
   date?: string;
   category?: string;
   type: "income" | "expense";
+  created_at?: string;
 }
 
 export interface ExpenseFormData {
