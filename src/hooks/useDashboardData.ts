@@ -4,6 +4,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../lib/supabase";
 import { STORAGE_KEYS } from "../constants";
 import type { BudgetMode } from "./useBudgetSettings";
+import { getDateRange } from "../utils/dateHelpers";
+import { Expense } from "../types";
+import { useExpenses } from "../context/Expenses/ExpensesContext";
 
 interface DashboardData {
   budgetAmount: number;
@@ -16,6 +19,7 @@ interface DashboardData {
 }
 
 export function useDashboardData(): DashboardData {
+  const { expenses, loading: expensesLoading } = useExpenses();
   const [budgetAmount, setBudgetAmount] = useState<number>(0);
   const [budgetMode, setBudgetMode] = useState<BudgetMode>("budget");
   const [budgetFrequency, setBudgetFrequency] = useState<'month' | 'fortnight'>('month');
@@ -34,53 +38,59 @@ export function useDashboardData(): DashboardData {
         AsyncStorage.getItem(STORAGE_KEYS.BUDGET_FREQUENCY),
       ]);
 
-      if (savedBudget) setBudgetAmount(Number(savedBudget));
-      if (savedMode === "total") {
-        setBudgetMode("total_spend");
-      } else if (savedMode === "budget" || savedMode === "total_spend") {
-        setBudgetMode(savedMode);
-      }
-      if (savedFrequency) setBudgetFrequency(savedFrequency as 'month' | 'fortnight');
-
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
 
       if (!userId) return;
 
-      const now = new Date();
-      let firstDay: Date;
-      let lastDay: Date;
+      // Fetch cloud settings to sync across devices
+      const { data: userSettings, error: settingsError } = await supabase
+        .from('user_settings')
+        .select('budget_mode, budget_amount, budget_frequency')
+        .eq('user_id', userId)
+        .single();
 
-      if (budgetFrequency === 'month') {
-        firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-        lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      } else { // fortnight
-        const dayOfMonth = now.getDate();
-        if (dayOfMonth <= 15) {
-          firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-          lastDay = new Date(now.getFullYear(), now.getMonth(), 15);
-        } else {
-          firstDay = new Date(now.getFullYear(), now.getMonth(), 16);
-          lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        }
+      let activeBudgetAmount = 0;
+      let activeBudgetMode: BudgetMode = "budget";
+      let activeFrequency: 'month' | 'fortnight' = "month";
+
+      if (!settingsError && userSettings) {
+        // Use cloud settings
+        activeBudgetAmount = userSettings.budget_amount ? Number(userSettings.budget_amount) : 0;
+        activeBudgetMode = userSettings.budget_mode as BudgetMode;
+        activeFrequency = userSettings.budget_frequency as 'month' | 'fortnight';
+        
+        // Save them locally for offline access/fast load next time
+        await AsyncStorage.setItem(STORAGE_KEYS.BUDGET_AMOUNT, activeBudgetAmount.toString());
+        await AsyncStorage.setItem(STORAGE_KEYS.BUDGET_MODE, activeBudgetMode);
+        await AsyncStorage.setItem(STORAGE_KEYS.BUDGET_FREQUENCY, activeFrequency);
+      } else {
+        // Fallback to local storage if cloud fetch fails or first time
+        if (savedBudget) activeBudgetAmount = Number(savedBudget);
+        if (savedMode === "total") activeBudgetMode = "total_spend";
+        else if (savedMode === "budget" || savedMode === "total_spend") activeBudgetMode = savedMode as BudgetMode;
+        if (savedFrequency) activeFrequency = savedFrequency as 'month' | 'fortnight';
       }
 
-      // Supabase query
-      const { data: expenses, error: dbError } = await supabase
-        .from('expenses')
-        .select('*')
-        .eq('user_id', userId) // Assuming user_id column exists
-        .gte('created_at', firstDay.toISOString())
-        .lte('created_at', lastDay.toISOString());
+      setBudgetAmount(activeBudgetAmount);
+      setBudgetMode(activeBudgetMode);
+      setBudgetFrequency(activeFrequency);
 
-      if (dbError) throw dbError;
+      const { firstDay, lastDay } = getDateRange(activeFrequency);
 
-      const expensesTotal = (expenses || [])
-        .filter((exp: any) => exp.type === "expense")
-        .reduce((acc: number, exp: any) => acc + (exp.amount || 0), 0);
-      const incomeTotal = (expenses || [])
-        .filter((exp: any) => exp.type === "income")
-        .reduce((acc: number, exp: any) => acc + (exp.amount || 0), 0);
+      // Filter global expenses instead of querying Supabase
+      const currentPeriodExpenses = expenses.filter(exp => {
+        if (!exp.created_at) return false;
+        const expDate = new Date(exp.created_at);
+        return expDate >= firstDay && expDate <= lastDay;
+      });
+
+      const expensesTotal = currentPeriodExpenses
+        .filter((exp: Expense) => exp.type === "expense")
+        .reduce((acc: number, exp: Expense) => acc + (exp.amount || 0), 0);
+      const incomeTotal = currentPeriodExpenses
+        .filter((exp: Expense) => exp.type === "income")
+        .reduce((acc: number, exp: Expense) => acc + (exp.amount || 0), 0);
 
       setTotalExpenses(expensesTotal);
       setTotalIncome(incomeTotal);
@@ -94,28 +104,11 @@ export function useDashboardData(): DashboardData {
 
   useFocusEffect(
     useCallback(() => {
-      loadData();
-    }, [budgetFrequency]) // Added dependency as it affects data loading
+      if (!expensesLoading) {
+        loadData();
+      }
+    }, [budgetFrequency, expenses, expensesLoading])
   );
 
-  useEffect(() => {
-    // Realtime subscription
-    const channel = supabase
-      .channel('public:expenses')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'expenses' },
-        (payload: any) => {
-          // Ideally check if payload affects current user, but reloading is safe
-          loadData();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [budgetFrequency]);
-
-  return { budgetAmount, budgetMode, totalExpenses, totalIncome, loading, error, budgetFrequency };
+  return { budgetAmount, budgetMode, totalExpenses, totalIncome, loading: loading || expensesLoading, error, budgetFrequency };
 }

@@ -3,12 +3,11 @@ import {
   View,
   Text,
   Dimensions,
-  StyleSheet,
   ActivityIndicator,
 } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import { useChartData } from "../hooks/useChartData";
-import { useTheme } from "@rneui/themed";
+import { useTheme, makeStyles } from "@rneui/themed";
 
 interface DashboardChartProps {
   budgetMode: "budget" | "total_spend";
@@ -18,59 +17,10 @@ export const DashboardChart: React.FC<DashboardChartProps> = ({
   budgetMode,
 }) => {
   const { theme } = useTheme();
-  const { data, thisMonthPercentage, balance, loading, error } =
+  const styles = useStyles();
+  const { data, loading, error } =
     useChartData(budgetMode);
   const screenWidth = Dimensions.get("window").width;
-
-  const styles = StyleSheet.create({
-    container: {
-      marginTop: 20,
-      alignItems: "center",
-    },
-    chartContainer: {
-      overflow: "hidden",
-      borderWidth: 1,
-      borderColor: theme.colors.grey0,
-      borderRadius: 12,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    legendContainer: {
-      flexDirection: "row",
-      justifyContent: "center",
-      marginTop: 10,
-    },
-    legendItem: {
-      flexDirection: "row",
-      alignItems: "center",
-      marginHorizontal: 10,
-    },
-    legendColor: {
-      width: 10,
-      height: 10,
-      borderRadius: 5,
-      marginRight: 5,
-    },
-    legendText: {
-      color: theme.colors.grey3,
-    },
-    summaryContainer: {
-      marginTop: 10,
-      width: "100%",
-      paddingHorizontal: 20,
-      flexDirection: "row",
-      justifyContent: "space-between",
-    },
-    summaryText: {
-      color: theme.colors.grey2,
-      fontSize: 16,
-    },
-    loadingContainer: {
-      height: 220,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-  });
 
   if (loading) {
     return (
@@ -83,7 +33,7 @@ export const DashboardChart: React.FC<DashboardChartProps> = ({
   if (error) {
     return (
       <View style={styles.container}>
-        <Text style={{ color: theme.colors.error }}>{error}</Text>
+        <Text style={styles.errorText}>{error}</Text>
       </View>
     );
   }
@@ -96,7 +46,7 @@ export const DashboardChart: React.FC<DashboardChartProps> = ({
   ) {
     return (
       <View style={styles.container}>
-        <Text style={{ color: theme.colors.grey3 }}>
+        <Text style={styles.noDataText}>
           Not enough data to display chart.
         </Text>
       </View>
@@ -125,10 +75,7 @@ export const DashboardChart: React.FC<DashboardChartProps> = ({
             labelColor: () => `rgb(97, 117, 138)`,
           }}
           bezier
-          style={{
-            borderRadius: 16,
-
-          }}
+          style={styles.chart}
         />
 
       </View>
@@ -150,3 +97,62 @@ export const DashboardChart: React.FC<DashboardChartProps> = ({
     </View>
   );
 };
+
+const useStyles = makeStyles((theme) => ({
+  container: {
+    marginTop: 20,
+    alignItems: "center",
+  },
+  chartContainer: {
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: theme.colors.grey0,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  chart: {
+    borderRadius: 16,
+  },
+  legendContainer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginHorizontal: 10,
+  },
+  legendColor: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    marginRight: 5,
+  },
+  legendText: {
+    color: theme.colors.grey3,
+  },
+  summaryContainer: {
+    marginTop: 10,
+    width: "100%",
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  summaryText: {
+    color: theme.colors.grey2,
+    fontSize: 16,
+  },
+  loadingContainer: {
+    height: 220,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    color: theme.colors.error,
+  },
+  noDataText: {
+    color: theme.colors.grey3,
+  },
+}));

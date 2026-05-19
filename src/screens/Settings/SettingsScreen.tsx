@@ -1,12 +1,11 @@
-import React, { useMemo } from "react";
+import React from "react";
 import {
   View,
-  StyleSheet,
   TouchableOpacity,
   ScrollView,
   Switch,
 } from "react-native";
-import { Text, Icon, useTheme } from "@rneui/themed";
+import { Text, Icon, useTheme, makeStyles } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
 import type { SettingsStackNavigationProp } from "../../types/navigation";
 import { useAuth } from "../../hooks/useAuth";
@@ -19,27 +18,7 @@ interface SettingItemProps {
 
 const SettingItem = ({ title, onPress, rightComponent }: SettingItemProps) => {
   const { theme } = useTheme();
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        item: {
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          borderRadius: 12,
-          marginBottom: 10,
-        },
-        itemTitle: {
-          textAlign: "left",
-          color:
-            theme.mode === "dark" ? theme.colors.white : theme.colors.black,
-          fontSize: 16,
-          fontWeight: "100",
-        },
-      }),
-    [theme]
-  );
+  const styles = useStyles();
 
   return (
     <TouchableOpacity style={styles.item} onPress={onPress} disabled={!onPress}>
@@ -66,32 +45,9 @@ export default function SettingsScreen({
   toggleTheme: () => void;
 }) {
   const { theme } = useTheme();
+  const styles = useStyles();
   const navigation = useNavigation<SettingsStackNavigationProp>();
   const { logout } = useAuth();
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          flex: 1,
-          backgroundColor: theme.colors.background,
-          paddingTop: 16,
-          paddingHorizontal: 16,
-        },
-        section: {
-          marginBottom: 24,
-        },
-        sectionTitle: {
-          color:
-            theme.mode === "dark" ? theme.colors.white : theme.colors.black,
-          fontSize: 18,
-          fontWeight: "bold",
-          marginBottom: 10,
-          textAlign: "left",
-        },
-      }),
-    [theme]
-  );
 
   return (
     <ScrollView style={styles.container}>
@@ -129,10 +85,6 @@ export default function SettingsScreen({
           title="Currency"
           onPress={() => navigation.navigate("Currency")}
         />
-        <SettingItem
-          title="Server Settings"
-          onPress={() => navigation.navigate("ServerSettings")}
-        />
         <SettingItem title="Notifications" />
       </View>
 
@@ -143,3 +95,35 @@ export default function SettingsScreen({
     </ScrollView>
   );
 }
+
+const useStyles = makeStyles((theme) => ({
+  container: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+    paddingTop: 16,
+    paddingHorizontal: 16,
+  },
+  section: {
+    marginBottom: 24,
+  },
+  sectionTitle: {
+    color: theme.mode === "dark" ? theme.colors.white : theme.colors.black,
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+    textAlign: "left",
+  },
+  item: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  itemTitle: {
+    textAlign: "left",
+    color: theme.mode === "dark" ? theme.colors.white : theme.colors.black,
+    fontSize: 16,
+    fontWeight: "100",
+  },
+}));

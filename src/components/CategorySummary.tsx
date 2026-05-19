@@ -1,47 +1,15 @@
 import React from "react";
-import { View, Text, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, ActivityIndicator } from "react-native";
 import { useCategorySummary } from "../hooks/useCategorySummary";
 import { useFormatCurrency } from "../utils/useFormatCurrency";
 import { EXPENSE_CATEGORIES } from "../constants/categories";
-import { Icon, useTheme } from "@rneui/themed";
+import { Icon, useTheme, makeStyles } from "@rneui/themed";
 
 export const CategorySummary: React.FC = () => {
   const { summary, loading } = useCategorySummary();
   const formatCurrency = useFormatCurrency();
   const { theme } = useTheme();
-
-  const styles = StyleSheet.create({
-    container: {
-      marginTop: 20,
-      width: "100%",
-    },
-    item: {
-      flexDirection: "row",
-      alignItems: "flex-start",
-      paddingVertical: 10,
-    },
-    iconContainer: {
-      backgroundColor: theme.colors.grey0,
-      marginRight: 15,
-      padding: 14,
-      borderRadius: 8,
-    },
-    categoryName: {
-      fontSize: 16,
-      fontFamily: "Inter-Medium",
-      color: theme.mode === "dark" ? theme.colors.white : theme.colors.black,
-    },
-    categoryTotal: {
-      fontSize: 14,
-      fontWeight: "bold",
-      color: theme.colors.grey3,
-    },
-    loadingContainer: {
-      height: 100,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-  });
+  const styles = useStyles();
 
   if (loading) {
     return (
@@ -77,3 +45,36 @@ export const CategorySummary: React.FC = () => {
     </View>
   );
 };
+
+const useStyles = makeStyles((theme) => ({
+  container: {
+    marginTop: 20,
+    width: "100%",
+  },
+  item: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    paddingVertical: 10,
+  },
+  iconContainer: {
+    backgroundColor: theme.colors.grey0,
+    marginRight: 15,
+    padding: 14,
+    borderRadius: 8,
+  },
+  categoryName: {
+    fontSize: 16,
+    fontFamily: "Inter-Medium",
+    color: theme.mode === "dark" ? theme.colors.white : theme.colors.black,
+  },
+  categoryTotal: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: theme.colors.grey3,
+  },
+  loadingContainer: {
+    height: 100,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+}));

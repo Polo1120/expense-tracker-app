@@ -4,6 +4,7 @@ import { useNetworkStatus } from "./src/hooks/useNetworkStatus";
 import { NetworkBanner } from "./src/components/NetworkBanner";
 import { AuthProvider } from "./src/context/Auth/AuthProvider";
 import { CurrencyProvider } from "./src/context/Currency/CurrencyProvider";
+import { ExpensesProvider } from "./src/context/Expenses/ExpensesContext";
 import { AppNavigator } from "./src/navigation/AppNavigator";
 import { theme as globalTheme } from "./global";
 import * as SplashScreen from "expo-splash-screen";
@@ -91,24 +92,26 @@ export default function App() {
       <ThemeProvider theme={theme}>
         <AuthProvider>
           <CurrencyProvider>
-            {!isConnected && <NetworkBanner />}
-            <NavigationContainer theme={navTheme}>
-              <Stack.Navigator
-                initialRouteName={initialRoute}
-                screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeMode === "dark" ? theme.darkColors?.background : theme.lightColors?.background } }}
-              >
-                <Stack.Screen name="Welcome">
-                  {(props) => (
-                    <WelcomeScreen {...props} setThemeMode={setThemeMode} />
-                  )}
-                </Stack.Screen>
-                <Stack.Screen name="App">
-                  {(props) => (
-                    <AppNavigator {...props} toggleTheme={toggleTheme} />
-                  )}
-                </Stack.Screen>
-              </Stack.Navigator>
-            </NavigationContainer>
+            <ExpensesProvider>
+              {!isConnected && <NetworkBanner />}
+              <NavigationContainer theme={navTheme}>
+                <Stack.Navigator
+                  initialRouteName={initialRoute}
+                  screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeMode === "dark" ? theme.darkColors?.background : theme.lightColors?.background } }}
+                >
+                  <Stack.Screen name="Welcome">
+                    {(props) => (
+                      <WelcomeScreen {...props} setThemeMode={setThemeMode} />
+                    )}
+                  </Stack.Screen>
+                  <Stack.Screen name="App">
+                    {(props) => (
+                      <AppNavigator {...props} toggleTheme={toggleTheme} />
+                    )}
+                  </Stack.Screen>
+                </Stack.Navigator>
+              </NavigationContainer>
+            </ExpensesProvider>
           </CurrencyProvider>
         </AuthProvider>
       </ThemeProvider>

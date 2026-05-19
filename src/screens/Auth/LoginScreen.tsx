@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from "react";
-import { View, StyleSheet } from "react-native";
+import React, { useState } from "react";
+import { View } from "react-native";
 import { useAuth } from "../../hooks/useAuth";
-import { Button, Input, Text, useTheme } from "@rneui/themed";
+import { Button, Input, Text, makeStyles } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
 import type { AuthStackNavigationProp } from "../../types/navigation";
 import { isValidEmail } from "../../utils/validators";
@@ -9,7 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
   const navigation = useNavigation<AuthStackNavigationProp>();
-  const { theme } = useTheme();
+  const styles = useStyles();
 
   const { login, loading, error } = useAuth();
 
@@ -59,36 +59,8 @@ export default function LoginScreen() {
     navigation.navigate("SignUp");
   };
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          marginTop: 20,
-          paddingHorizontal: 16,
-          width: "100%",
-        },
-        title: { marginBottom: 18 },
-        generalError: {
-          color: theme.colors.error,
-          textAlign: "center",
-          marginBottom: 10,
-        },
-        switchText: {
-          color:
-            theme.mode === "dark" ? theme.colors.white : theme.colors.black,
-          marginTop: 18,
-          textAlign: "center",
-        },
-        link: {
-          color: theme.colors.primary,
-          fontWeight: "600",
-        },
-      }),
-    [theme]
-  );
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView style={styles.safeArea}>
       <View style={[styles.container]}>
         <Text h2 style={styles.title}>
           Welcome back
@@ -121,3 +93,30 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
+
+const useStyles = makeStyles((theme) => ({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  container: {
+    marginTop: 20,
+    paddingHorizontal: 16,
+    width: "100%",
+  },
+  title: { marginBottom: 18 },
+  generalError: {
+    color: theme.colors.error,
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  switchText: {
+    color: theme.mode === "dark" ? theme.colors.white : theme.colors.black,
+    marginTop: 18,
+    textAlign: "center",
+  },
+  link: {
+    color: theme.colors.primary,
+    fontWeight: "600",
+  },
+}));

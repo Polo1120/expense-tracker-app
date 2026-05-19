@@ -8,7 +8,6 @@ import BudgetSettingsScreen from "../screens/Settings/BudgetSettingsScreen";
 import ProfileScreen from "../screens/Settings/ProfileScreen";
 import SecurityScreen from "../screens/Settings/SecurityScreen";
 import { CurrencyScreen } from "../screens/Settings/CurrencyScreen";
-import ServerScreen from "../screens/Settings/ServerScreen";
 import type { SettingsStackParamList } from "../types/navigation";
 import { useTheme } from "@rneui/themed";
 
@@ -88,20 +87,6 @@ export function SettingsNavigator({
         component={CurrencyScreen}
         options={{
           title: "Currency",
-          headerTitleAlign: "center",
-          headerStyle: {
-            backgroundColor: currentTheme.colors.background,
-            borderBottomWidth: 1,
-            borderBottomColor: currentTheme.colors.grey0,
-          },
-          headerTintColor: currentTheme.colors.adaptiveColor,
-        }}
-      />
-      <Stack.Screen
-        name="ServerSettings"
-        component={ServerScreen}
-        options={{
-          title: "Server Settings",
           headerTitleAlign: "center",
           headerStyle: {
             backgroundColor: currentTheme.colors.background,

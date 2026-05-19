@@ -1,6 +1,6 @@
-import { View, StyleSheet } from "react-native";
-import React, { useState, useMemo } from "react";
-import { Button, Input, Text, useTheme } from "@rneui/themed";
+import { View } from "react-native";
+import React, { useState } from "react";
+import { Button, Input, Text, makeStyles } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
 import type { AuthStackNavigationProp } from "../../types/navigation";
 import { useAuth } from "../../hooks/useAuth";
@@ -9,7 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignUpScreen() {
   const navigation = useNavigation<AuthStackNavigationProp>();
-  const { theme } = useTheme();
+  const styles = useStyles();
   const { signup, loading, error } = useAuth();
 
   const [form, setForm] = useState({
@@ -65,32 +65,8 @@ export default function SignUpScreen() {
     navigation.goBack();
   };
 
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        container: { marginTop: 20, paddingHorizontal: 16, width: "100%" },
-        title: { marginBottom: 18 },
-        generalError: {
-          color: theme.colors.error,
-          textAlign: "center",
-          marginBottom: 10,
-        },
-        link: {
-          marginTop: 18,
-          textAlign: "center",
-          color:
-            theme.mode === "dark" ? theme.colors.white : theme.colors.black,
-        },
-        linkHighlight: {
-          color: theme.colors.primary,
-          fontWeight: "600",
-        },
-      }),
-    [theme]
-  );
-
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <Text h2 style={styles.title}>
           Create an Account
@@ -136,3 +112,26 @@ export default function SignUpScreen() {
     </SafeAreaView>
   );
 }
+
+const useStyles = makeStyles((theme) => ({
+  safeArea: {
+    flex: 1,
+    backgroundColor: theme.colors.background,
+  },
+  container: { marginTop: 20, paddingHorizontal: 16, width: "100%" },
+  title: { marginBottom: 18 },
+  generalError: {
+    color: theme.colors.error,
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  link: {
+    marginTop: 18,
+    textAlign: "center",
+    color: theme.mode === "dark" ? theme.colors.white : theme.colors.black,
+  },
+  linkHighlight: {
+    color: theme.colors.primary,
+    fontWeight: "600",
+  },
+}));

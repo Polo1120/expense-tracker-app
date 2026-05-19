@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { supabase } from "../lib/supabase";
 import { STORAGE_KEYS } from "../constants";
+import { getDateRange } from "../utils/dateHelpers";
+import { Expense } from "../types";
+import { useExpenses } from "../context/Expenses/ExpensesContext";
 
 export interface CategorySummaryData {
   name: string;
@@ -9,12 +11,13 @@ export interface CategorySummaryData {
 }
 
 export const useCategorySummary = () => {
+  const { expenses, loading: expensesLoading } = useExpenses();
   const [summary, setSummary] = useState<CategorySummaryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [budgetFrequency, setBudgetFrequency] = useState<'month' | 'fortnight'>('month');
 
   useEffect(() => {
-    const fetchExpenses = async () => {
+    const processExpenses = async () => {
       setLoading(true);
       try {
         const savedFrequency = await AsyncStorage.getItem(STORAGE_KEYS.BUDGET_FREQUENCY);
@@ -25,60 +28,38 @@ export const useCategorySummary = () => {
 
         setBudgetFrequency(activeFrequency);
 
-        const { data: { session } } = await supabase.auth.getSession();
-        const userId = session?.user?.id;
+        const { firstDay, lastDay } = getDateRange(activeFrequency);
 
-        if (!userId) {
-          setLoading(false);
-          return;
-        }
+        // Filter global expenses locally
+        const currentPeriodExpenses = expenses.filter(exp => {
+          if (!exp.created_at) return false;
+          const expDate = new Date(exp.created_at);
+          return expDate >= firstDay && expDate <= lastDay;
+        });
 
-        const now = new Date();
-        let firstDay: Date;
-        let lastDay: Date;
-
-        if (activeFrequency === 'month') {
-          firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-          lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-        } else { // fortnight
-          const dayOfMonth = now.getDate();
-          if (dayOfMonth <= 15) {
-            firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-            lastDay = new Date(now.getFullYear(), now.getMonth(), 15);
-          } else {
-            firstDay = new Date(now.getFullYear(), now.getMonth(), 16);
-            lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-          }
-        }
-
-        const { data: expenseRecords, error: dbError } = await supabase
-          .from('expenses')
-          .select('*')
-          .eq('user_id', userId)
-          .gte('created_at', firstDay.toISOString())
-          .lte('created_at', lastDay.toISOString());
-
-        if (dbError) throw dbError;
-
-        const summaryData = (expenseRecords || []).reduce((acc: any, expense: any) => {
-          const category = expense.category || "Other";
-          if (!acc[category]) {
-            acc[category] = { name: category, total: 0 };
-          }
-          acc[category].total += expense.amount; // Ensure amount exists
-          return acc;
-        }, {} as { [key: string]: CategorySummaryData });
+        const summaryData = currentPeriodExpenses
+          .filter((expense: Expense) => expense.type === "expense")
+          .reduce((acc: { [key: string]: CategorySummaryData }, expense: Expense) => {
+            const category = expense.category || "Other";
+            if (!acc[category]) {
+              acc[category] = { name: category, total: 0 };
+            }
+            acc[category].total += expense.amount; // Ensure amount exists
+            return acc;
+          }, {} as { [key: string]: CategorySummaryData });
 
         setSummary(Object.values(summaryData));
       } catch (error) {
-        console.error("Failed to fetch category summary:", error);
+        console.error("Failed to process category summary:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchExpenses();
-  }, [budgetFrequency]);
+    if (!expensesLoading) {
+      processExpenses();
+    }
+  }, [budgetFrequency, expenses, expensesLoading]);
 
-  return { summary, loading };
+  return { summary, loading: loading || expensesLoading };
 };

@@ -19,7 +19,6 @@ export type SettingsStackParamList = {
   Profile: undefined;
   Security: undefined;
   Currency: undefined;
-  ServerSettings: undefined;
 };
 
 export type RootTabNavigationProp = BottomTabNavigationProp<RootTabParamList>;

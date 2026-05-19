@@ -22,7 +22,7 @@ export function TabsNavigator({ toggleTheme }: { toggleTheme: () => void }) {
           borderBottomColor: currentTheme.colors.grey0,
         },
         headerTintColor: currentTheme.colors.adaptiveColor,
-        tabBarActiveTintColor: currentTheme.colors.white,
+        tabBarActiveTintColor: currentTheme.colors.adaptiveColor,
         tabBarInactiveTintColor: currentTheme.colors.disabled,
         tabBarItemStyle: { paddingVertical: 9 },
         tabBarStyle: {

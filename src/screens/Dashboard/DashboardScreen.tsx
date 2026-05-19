@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
-import { Text, LinearProgress, useTheme } from "@rneui/themed";
+import { View, ScrollView } from "react-native";
+import { Text, LinearProgress, useTheme, makeStyles } from "@rneui/themed";
 import { useDashboardData } from "../../hooks/useDashboardData";
 import { useFormatCurrency } from "../../utils/useFormatCurrency";
 import { DashboardChart } from "../../components/DashboardChart";
@@ -8,6 +8,7 @@ import { CategorySummary } from "../../components/CategorySummary";
 
 export default function DashboardScreen() {
   const { theme } = useTheme();
+  const styles = useStyles();
   const {
     budgetAmount,
     budgetMode,
@@ -15,107 +16,17 @@ export default function DashboardScreen() {
     totalIncome,
     loading,
     error,
+    budgetFrequency,
   } = useDashboardData();
 
   const formatCurrency = useFormatCurrency();
 
-  const { percent, remaining } = useMemo(() => {
-    const income = budgetMode === "budget" ? budgetAmount : totalIncome;
+  const { percent, remaining, displayIncome } = useMemo(() => {
+    const income = budgetMode === "budget" ? budgetAmount + totalIncome : totalIncome;
     const percent = income > 0 ? totalExpenses / income : 0;
     const remaining = income - totalExpenses;
-    return { percent, remaining };
+    return { percent, remaining, displayIncome: income };
   }, [budgetAmount, totalExpenses, totalIncome, budgetMode]);
-
-  const styles = useMemo(
-    () =>
-      StyleSheet.create({
-        container: {
-          flex: 1,
-          paddingHorizontal: 16,
-          paddingTop: 16,
-          backgroundColor: theme.colors.background,
-        },
-        containerValues: {
-          display: "flex",
-          flexWrap: "wrap",
-          flexDirection: "row",
-          rowGap: 16,
-          justifyContent: "space-between",
-        },
-        contentValues: {
-          padding: 20,
-          backgroundColor: theme.colors.grey0,
-          borderRadius: 12,
-          width: "48%",
-          borderWidth: 1,
-          borderColor: theme.colors.grey0,
-        },
-        contentValuesBalance: {
-          backgroundColor: theme.colors.grey0,
-          width: "100%",
-          borderRadius: 12,
-          padding: 20,
-          borderWidth: 1,
-          borderColor: theme.colors.grey0,
-        },
-        text: {
-          fontSize: 16,
-          textAlign: "left",
-          fontFamily: "Inter-Medium",
-          color: theme.colors.adaptiveColor,
-          marginBottom: 6,
-        },
-        highlight: {
-          textAlign: "left",
-          fontFamily: "Inter-Bold",
-          color: theme.colors.adaptiveColor,
-          fontSize: 18,
-        },
-        titleBudget: {
-          fontSize: 14,
-          paddingBottom: 16,
-          color: theme.colors.grey3,
-        },
-        BudgetTitle: {
-          textAlign: "left",
-          color: theme.colors.adaptiveColor,
-          marginBlock: 32,
-        },
-        progress: {
-          borderRadius: 10,
-          height: 8,
-          backgroundColor: theme.colors.grey0,
-        },
-        percentText: {
-          color: theme.colors.grey3,
-          marginTop: 6,
-          textAlign: "left",
-        },
-        loadingContainer: {
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: theme.colors.background,
-        },
-        loadingText: {
-          color: theme.colors.white,
-          fontSize: 16,
-        },
-        errorContainer: {
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-          backgroundColor: theme.colors.background,
-          padding: 16,
-        },
-        errorText: {
-          color: theme.colors.error,
-          fontSize: 16,
-          textAlign: "center",
-        },
-      }),
-    [theme]
-  );
 
   if (loading) {
     return (
@@ -136,16 +47,16 @@ export default function DashboardScreen() {
   return (
     <ScrollView style={styles.container}>
       {budgetMode === "budget" && (
-        <Text style={styles.titleBudget}>Monthly Budget</Text>
+        <Text style={styles.titleBudget}>
+          {budgetFrequency === "month" ? "Monthly Budget" : "Biweekly Budget"}
+        </Text>
       )}
       <View>
         <View style={styles.containerValues}>
           <View style={styles.contentValues}>
             <Text style={styles.text}>Income</Text>
             <Text style={styles.highlight}>
-              {formatCurrency(
-                budgetMode === "budget" ? budgetAmount : totalIncome
-              )}
+              {formatCurrency(displayIncome)}
             </Text>
           </View>
 
@@ -165,9 +76,7 @@ export default function DashboardScreen() {
                   color:
                     remaining < 0
                       ? theme.colors.error
-                      : theme.mode === "dark"
-                      ? theme.colors.white
-                      : theme.colors.black,
+                      : theme.colors.adaptiveColor,
                 },
               ]}
             >
@@ -189,9 +98,7 @@ export default function DashboardScreen() {
                 color={
                   remaining < 0
                     ? theme.colors.error
-                    : theme.mode === "dark"
-                    ? theme.colors.white
-                    : theme.colors.black
+                    : theme.colors.adaptiveColor
                 }
                 style={styles.progress}
               />
@@ -208,3 +115,90 @@ export default function DashboardScreen() {
     </ScrollView>
   );
 }
+
+const useStyles = makeStyles((theme) => ({
+  container: {
+    flex: 1,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    backgroundColor: theme.colors.background,
+  },
+  containerValues: {
+    display: "flex",
+    flexWrap: "wrap",
+    flexDirection: "row",
+    rowGap: 16,
+    justifyContent: "space-between",
+  },
+  contentValues: {
+    padding: 20,
+    backgroundColor: theme.colors.grey0,
+    borderRadius: 12,
+    width: "48%",
+    borderWidth: 1,
+    borderColor: theme.colors.grey0,
+  },
+  contentValuesBalance: {
+    backgroundColor: theme.colors.grey0,
+    width: "100%",
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.grey0,
+  },
+  text: {
+    fontSize: 16,
+    textAlign: "left",
+    fontFamily: "Inter-Medium",
+    color: theme.colors.adaptiveColor,
+    marginBottom: 6,
+  },
+  highlight: {
+    textAlign: "left",
+    fontFamily: "Inter-Bold",
+    color: theme.colors.adaptiveColor,
+    fontSize: 18,
+  },
+  titleBudget: {
+    fontSize: 14,
+    paddingBottom: 16,
+    color: theme.colors.grey3,
+  },
+  BudgetTitle: {
+    textAlign: "left",
+    color: theme.colors.adaptiveColor,
+    marginBlock: 32,
+  },
+  progress: {
+    borderRadius: 10,
+    height: 8,
+    backgroundColor: theme.colors.grey0,
+  },
+  percentText: {
+    color: theme.colors.grey3,
+    marginTop: 6,
+    textAlign: "left",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.colors.background,
+  },
+  loadingText: {
+    color: theme.colors.adaptiveColor,
+    fontSize: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: theme.colors.background,
+    padding: 16,
+  },
+  errorText: {
+    color: theme.colors.error,
+    fontSize: 16,
+    textAlign: "center",
+  },
+}));

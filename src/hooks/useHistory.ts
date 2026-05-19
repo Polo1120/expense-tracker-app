@@ -1,43 +1,22 @@
 import { useState, useEffect } from "react";
-import { supabase } from "../lib/supabase";
 import { Expense } from "../types";
+import { useExpenses } from "../context/Expenses/ExpensesContext";
 
 export function useHistory() {
+    const { expenses, loading: expensesLoading, refreshExpenses } = useExpenses();
     const [transactions, setTransactions] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"all" | "income" | "expense">("all");
 
-    const fetchTransactions = async () => {
-        setLoading(true);
-        try {
-            const { data: { session } } = await supabase.auth.getSession();
-            const userId = session?.user?.id;
-            if (!userId) return;
-
-            let query = supabase
-                .from("expenses")
-                .select("*")
-                .eq("user_id", userId)
-                .order("created_at", { ascending: false });
-
-            if (filter !== "all") {
-                query = query.eq("type", filter);
-            }
-
-            const { data, error } = await query;
-
-            if (error) throw error;
-            setTransactions(data || []);
-        } catch (error) {
-            console.error("Error fetching history:", error);
-        } finally {
-            setLoading(false);
-        }
-    };
-
     useEffect(() => {
-        fetchTransactions();
-    }, [filter]);
+        setLoading(true);
+        let filtered = expenses;
+        if (filter !== "all") {
+            filtered = expenses.filter(exp => exp.type === filter);
+        }
+        setTransactions(filtered);
+        setLoading(false);
+    }, [filter, expenses]);
 
-    return { transactions, loading, filter, setFilter, refresh: fetchTransactions };
+    return { transactions, loading: loading || expensesLoading, filter, setFilter, refresh: refreshExpenses };
 }

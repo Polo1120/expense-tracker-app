@@ -1,9 +1,10 @@
 import React from "react";
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
-import { useTheme, Icon, ListItem } from "@rneui/themed";
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
+import { useTheme, Icon, ListItem, makeStyles } from "@rneui/themed";
 import { useHistory } from "../../hooks/useHistory";
 import { EXPENSE_CATEGORIES } from "../../constants/categories";
 import { Expense } from "../../types";
+import { useFormatCurrency } from "../../utils/useFormatCurrency";
 
 const FILTER_TABS = [
     { label: "Total", value: "all" },
@@ -13,53 +14,47 @@ const FILTER_TABS = [
 
 export default function HistoryScreen() {
     const { theme } = useTheme();
+    const styles = useStyles();
     const { transactions, loading, filter, setFilter, refresh } = useHistory();
+    const formatCurrency = useFormatCurrency();
 
     const getCategoryIcon = (category: string) => {
         // @ts-ignore
         const cat = EXPENSE_CATEGORIES[category];
-        return cat ? cat.icon : "help-circle"; // material community icon name
+        return cat ? cat.icon : "help-circle"; 
     };
 
     const renderItem = ({ item }: { item: Expense }) => {
         const isExpense = item.type === "expense";
-        const amountColor = isExpense ? theme.colors.error : theme.colors.success;
         const sign = isExpense ? "-" : "+";
 
         return (
             <ListItem
                 key={item.id}
-                containerStyle={{
-                    backgroundColor: theme.colors.background,
-                    marginHorizontal: 16,
-                    marginVertical: 4,
-                    borderRadius: 12,
-                    borderWidth: 1,
-                    borderColor: theme.colors.grey0
-                }}
+                containerStyle={styles.listItem}
                 bottomDivider={false}
             >
                 <>
-                    <View style={[styles.iconContainer, { backgroundColor: theme.colors.grey0 }]}>
+                    <View style={styles.iconContainer}>
                         <Icon
                             name={getCategoryIcon(item.category || "")}
                             type="material-community"
-                            color={isExpense ? theme.colors.adaptiveColor : theme.colors.success}
+                            color={isExpense ? theme.colors.error : theme.colors.success}
                             size={24}
                         />
                     </View>
 
                     <ListItem.Content>
-                        <ListItem.Title style={{ color: theme.colors.adaptiveColor, fontFamily: "Inter-Medium", fontSize: 16, paddingLeft: 16 }}>
+                        <ListItem.Title style={styles.itemTitle}>
                             {item.name || item.category || "Transaction"}
                         </ListItem.Title>
-                        <ListItem.Subtitle style={{ color: theme.colors.grey3, fontSize: 12, marginTop: 4, paddingLeft: 16 }}>
-                            {item.date ? new Date(item.date).toLocaleDateString() : ""}
+                        <ListItem.Subtitle style={styles.itemSubtitle}>
+                            {item.created_at ? new Date(item.created_at).toLocaleDateString() : ""}
                         </ListItem.Subtitle>
                     </ListItem.Content>
 
-                    <Text style={{ color: theme.colors.adaptiveColor, fontSize: 16 }}>
-                        {sign}${item.amount.toFixed(2)}
+                    <Text style={styles.amountText}>
+                        {sign}{formatCurrency(item.amount)}
                     </Text>
                 </>
             </ListItem>
@@ -68,7 +63,7 @@ export default function HistoryScreen() {
 
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <View style={styles.container}>
             {/* Filter Tabs */}
             <View style={styles.filterContainer}>
                 {FILTER_TABS.map((tab) => {
@@ -81,12 +76,11 @@ export default function HistoryScreen() {
                                 styles.tab,
                                 {
                                     backgroundColor: isActive ? theme.colors.primary : 'transparent',
-                                    borderColor: theme.colors.grey0
                                 }
                             ]}
                         >
                             <Text style={{
-                                color: isActive ? theme.colors.white : theme.colors.grey2,
+                                color: isActive ? theme.colors.white : theme.colors.grey3,
                                 fontWeight: "600"
                             }}>
                                 {tab.label}
@@ -120,9 +114,10 @@ export default function HistoryScreen() {
     );
 }
 
-const styles = StyleSheet.create({
+const useStyles = makeStyles((theme) => ({
     container: {
         flex: 1,
+        backgroundColor: theme.colors.background,
     },
     filterContainer: {
         flexDirection: "row",
@@ -137,6 +132,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 4,
         borderRadius: 8,
         borderWidth: 1,
+        borderColor: theme.colors.grey0,
     },
     center: {
         flex: 1,
@@ -144,11 +140,36 @@ const styles = StyleSheet.create({
         alignItems: "center",
         marginTop: 50,
     },
+    listItem: {
+        backgroundColor: theme.colors.background,
+        marginHorizontal: 16,
+        marginVertical: 4,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: theme.colors.grey0,
+    },
     iconContainer: {
         width: 40,
         height: 40,
         borderRadius: 20,
         justifyContent: 'center',
         alignItems: 'center',
-    }
-});
+        backgroundColor: theme.colors.grey0,
+    },
+    itemTitle: {
+        color: theme.colors.adaptiveColor,
+        fontFamily: "Inter-Medium",
+        fontSize: 16,
+        paddingLeft: 16,
+    },
+    itemSubtitle: {
+        color: theme.colors.grey3,
+        fontSize: 12,
+        marginTop: 4,
+        paddingLeft: 16,
+    },
+    amountText: {
+        color: theme.colors.adaptiveColor,
+        fontSize: 16,
+    },
+}));
