@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../../lib/supabase";
 import { AuthContext } from "./AuthContext";
 import type { User } from "../../types/User";
-import { Session } from "@supabase/supabase-js";
+import type { Session, User as SupabaseUser } from "@supabase/supabase-js";
 
 interface Props {
   children: ReactNode;
@@ -11,12 +11,12 @@ interface Props {
 
 export function AuthProvider({ children }: Props) {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   // Helper to map Supabase user to our User type
-  const mapUser = (sessionUser: any): User | null => {
+  const mapUser = (sessionUser: SupabaseUser | null): User | null => {
     if (!sessionUser) return null;
     return {
       id: sessionUser.id,
@@ -31,6 +31,7 @@ export function AuthProvider({ children }: Props) {
   useEffect(() => {
     const initializeUser = async () => {
       try {
+        setLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           setUser(mapUser(session.user));
@@ -41,11 +42,13 @@ export function AuthProvider({ children }: Props) {
         }
       } catch (e) {
         console.error("Error checking session", e);
+      } finally {
+        setLoading(false);
       }
     };
     initializeUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: any) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
       if (session?.user) {
         setUser(mapUser(session.user));
         setIsAuthenticated(true);
@@ -63,7 +66,7 @@ export function AuthProvider({ children }: Props) {
     setError(null);
     try {
       const { error: authError } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password
       });
       if (authError) throw authError;
@@ -78,8 +81,8 @@ export function AuthProvider({ children }: Props) {
     setLoading(true);
     setError(null);
     try {
-      const { error: authError, data } = await supabase.auth.signUp({
-        email,
+      const { error: authError } = await supabase.auth.signUp({
+        email: email.trim(),
         password,
         options: {
           data: {

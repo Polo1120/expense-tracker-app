@@ -44,14 +44,14 @@ export default function DashboardScreen() {
         },
         contentValues: {
           padding: 20,
-          backgroundColor: theme.mode === "dark" ? theme.colors.grey0 : "",
+          backgroundColor: theme.colors.grey0,
           borderRadius: 12,
           width: "48%",
           borderWidth: 1,
           borderColor: theme.colors.grey0,
         },
         contentValuesBalance: {
-          backgroundColor: theme.mode === "dark" ? theme.colors.grey0 : "",
+          backgroundColor: theme.colors.grey0,
           width: "100%",
           borderRadius: 12,
           padding: 20,

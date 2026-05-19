@@ -1,13 +1,16 @@
 import type { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import type { StackNavigationProp } from "@react-navigation/stack";
 
+export type AuthStackParamList = {
+  Login: undefined;
+  SignUp: undefined;
+};
+
 export type RootTabParamList = {
   Dashboard: undefined;
   History: undefined;
   Add: undefined;
   Settings: undefined;
-  SignUp: undefined;
-  Login: undefined;
 };
 
 export type SettingsStackParamList = {
@@ -22,3 +25,4 @@ export type SettingsStackParamList = {
 export type RootTabNavigationProp = BottomTabNavigationProp<RootTabParamList>;
 export type SettingsStackNavigationProp =
   StackNavigationProp<SettingsStackParamList>;
+export type AuthStackNavigationProp = StackNavigationProp<AuthStackParamList>;

@@ -11,7 +11,7 @@ import { useFonts } from "expo-font";
 import { View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import WelcomeScreen from "./src/screens/Welcome/WelcomeScreen";
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, DefaultTheme, DarkTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
 SplashScreen.preventAutoHideAsync();
@@ -36,7 +36,6 @@ export default function App() {
         const seenWelcome = await AsyncStorage.getItem("hasSeenWelcomeScreen");
         const savedTheme = await AsyncStorage.getItem("themeMode");
 
-
         if (savedTheme) {
           setThemeMode(savedTheme as "light" | "dark");
         }
@@ -51,7 +50,6 @@ export default function App() {
         setInitialRoute("Welcome");
       } finally {
         if (fontsLoaded) {
-          await new Promise((resolve) => setTimeout(resolve, 500));
           setAppIsReady(true);
         }
       }
@@ -65,6 +63,12 @@ export default function App() {
     newTheme.mode = themeMode;
     return newTheme;
   }, [themeMode]);
+
+  const navTheme = useMemo(() => {
+    return themeMode === "dark"
+      ? { ...DarkTheme, colors: { ...DarkTheme.colors, background: theme.darkColors?.background || "#121417" } }
+      : { ...DefaultTheme, colors: { ...DefaultTheme.colors, background: theme.lightColors?.background || "#FFFFFF" } };
+  }, [themeMode, theme]);
 
   const toggleTheme = async () => {
     const newThemeMode = themeMode === "dark" ? "light" : "dark";
@@ -88,10 +92,10 @@ export default function App() {
         <AuthProvider>
           <CurrencyProvider>
             {!isConnected && <NetworkBanner />}
-            <NavigationContainer>
+            <NavigationContainer theme={navTheme}>
               <Stack.Navigator
                 initialRouteName={initialRoute}
-                screenOptions={{ headerShown: false }}
+                screenOptions={{ headerShown: false, contentStyle: { backgroundColor: themeMode === "dark" ? theme.darkColors?.background : theme.lightColors?.background } }}
               >
                 <Stack.Screen name="Welcome">
                   {(props) => (

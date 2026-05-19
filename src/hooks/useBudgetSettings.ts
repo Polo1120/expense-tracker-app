@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { STORAGE_KEYS } from "../constants";
 
-type BudgetMode = "budget" | "total";
+export type BudgetMode = "budget" | "total_spend";
 
 export function useBudgetSettings() {
   const [budgetMode, setBudgetMode] = useState<BudgetMode>("budget");
@@ -25,7 +25,11 @@ export function useBudgetSettings() {
           AsyncStorage.getItem(STORAGE_KEYS.BUDGET_FREQUENCY),
         ]);
 
-        if (savedMode) setBudgetMode(savedMode as BudgetMode);
+        if (savedMode === "total") {
+          setBudgetMode("total_spend");
+        } else if (savedMode === "budget" || savedMode === "total_spend") {
+          setBudgetMode(savedMode);
+        }
         if (savedAmount) setBudgetAmount(savedAmount);
         if (savedFrequency) setBudgetFrequency(savedFrequency as 'month' | 'fortnight');
       } catch (err) {
@@ -63,7 +67,7 @@ export function useBudgetSettings() {
   };
 
   const handleSetBudgetMode = (mode: BudgetMode) => {
-    if (mode === "total") {
+    if (mode === "total_spend") {
       setBudgetAmount("");
     }
     setBudgetMode(mode);

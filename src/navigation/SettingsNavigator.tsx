@@ -21,7 +21,11 @@ export function SettingsNavigator({
 }) {
   const { theme: currentTheme } = useTheme();
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        cardStyle: { backgroundColor: currentTheme.colors.background },
+      }}
+    >
       <Stack.Screen
         name="SettingsMain"
         options={{

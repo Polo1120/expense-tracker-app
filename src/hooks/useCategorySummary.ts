@@ -17,6 +17,14 @@ export const useCategorySummary = () => {
     const fetchExpenses = async () => {
       setLoading(true);
       try {
+        const savedFrequency = await AsyncStorage.getItem(STORAGE_KEYS.BUDGET_FREQUENCY);
+        const activeFrequency =
+          savedFrequency === 'fortnight' || savedFrequency === 'month'
+            ? savedFrequency
+            : budgetFrequency;
+
+        setBudgetFrequency(activeFrequency);
+
         const { data: { session } } = await supabase.auth.getSession();
         const userId = session?.user?.id;
 
@@ -29,7 +37,7 @@ export const useCategorySummary = () => {
         let firstDay: Date;
         let lastDay: Date;
 
-        if (budgetFrequency === 'month') {
+        if (activeFrequency === 'month') {
           firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
           lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         } else { // fortnight
@@ -47,8 +55,8 @@ export const useCategorySummary = () => {
           .from('expenses')
           .select('*')
           .eq('user_id', userId)
-          .gte('date', firstDay.toISOString().split('T')[0])
-          .lte('date', lastDay.toISOString().split('T')[0]);
+          .gte('created_at', firstDay.toISOString())
+          .lte('created_at', lastDay.toISOString());
 
         if (dbError) throw dbError;
 
@@ -70,7 +78,7 @@ export const useCategorySummary = () => {
     };
 
     fetchExpenses();
-  }, []);
+  }, [budgetFrequency]);
 
   return { summary, loading };
 };

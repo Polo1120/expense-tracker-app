@@ -79,28 +79,32 @@ export const theme = createTheme({
         fontFamily: "Inter-Regular",
       },
     }),
-    Text: {
+    Text: (props, theme) => ({
       style: {
         fontSize: 14,
         textAlign: "center",
-        color: "#fff",
+        color: theme.colors.adaptiveColor,
         fontFamily: "Inter-Regular",
       },
       h1Style: {
         fontFamily: "Inter-Bold",
+        color: theme.colors.adaptiveColor,
       },
       h2Style: {
         textAlign: "center",
         fontSize: 28,
         fontFamily: "Inter-Bold",
+        color: theme.colors.adaptiveColor,
       },
       h3Style: {
         fontFamily: "Inter-Bold",
         fontSize: 22,
+        color: theme.colors.adaptiveColor,
       },
       h4Style: {
         fontFamily: "Inter-Bold",
+        color: theme.colors.adaptiveColor,
       },
-    },
+    }),
   },
 });

@@ -2,13 +2,13 @@ import { View, StyleSheet } from "react-native";
 import React, { useState, useMemo } from "react";
 import { Button, Input, Text, useTheme } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
-import type { RootTabNavigationProp } from "../../types/navigation";
+import type { AuthStackNavigationProp } from "../../types/navigation";
 import { useAuth } from "../../hooks/useAuth";
 import { isValidEmail } from "../../utils/validators";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SignUpScreen() {
-  const navigation = useNavigation<RootTabNavigationProp>();
+  const navigation = useNavigation<AuthStackNavigationProp>();
   const { theme } = useTheme();
   const { signup, loading, error } = useAuth();
 
@@ -62,7 +62,7 @@ export default function SignUpScreen() {
   };
 
   const handleLogin = () => {
-    navigation.navigate("Login");
+    navigation.goBack();
   };
 
   const styles = useMemo(

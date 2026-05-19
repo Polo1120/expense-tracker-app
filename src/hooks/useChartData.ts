@@ -69,8 +69,8 @@ export const useChartData = (budgetMode: "budget" | "total_spend") => {
     const actualSpendData = months.map((m) =>
       expenses
         .filter((e) => {
-          if (!e.date) return false;
-          const expenseDate = new Date(e.date);
+          if (!e.created_at) return false;
+          const expenseDate = new Date(e.created_at);
 
           return (
             expenseDate.getMonth() === m.month &&
@@ -116,8 +116,8 @@ export const useChartData = (budgetMode: "budget" | "total_spend") => {
     const currentYear = new Date().getFullYear();
     const thisMonthExpenses = expenses
       .filter((e) => {
-        if (!e.date) return false;
-        const expenseDate = new Date(e.date);
+        if (!e.created_at) return false;
+        const expenseDate = new Date(e.created_at);
         return (
           expenseDate.getMonth() === currentMonth &&
           expenseDate.getFullYear() === currentYear

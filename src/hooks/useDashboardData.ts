@@ -3,9 +3,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { supabase } from "../lib/supabase";
 import { STORAGE_KEYS } from "../constants";
-import { Expense } from "../types";
-
-type BudgetMode = "budget" | "total_spend";
+import type { BudgetMode } from "./useBudgetSettings";
 
 interface DashboardData {
   budgetAmount: number;
@@ -37,7 +35,11 @@ export function useDashboardData(): DashboardData {
       ]);
 
       if (savedBudget) setBudgetAmount(Number(savedBudget));
-      if (savedMode) setBudgetMode(savedMode as BudgetMode);
+      if (savedMode === "total") {
+        setBudgetMode("total_spend");
+      } else if (savedMode === "budget" || savedMode === "total_spend") {
+        setBudgetMode(savedMode);
+      }
       if (savedFrequency) setBudgetFrequency(savedFrequency as 'month' | 'fortnight');
 
       const { data: { session } } = await supabase.auth.getSession();
@@ -68,8 +70,8 @@ export function useDashboardData(): DashboardData {
         .from('expenses')
         .select('*')
         .eq('user_id', userId) // Assuming user_id column exists
-        .gte('date', firstDay.toISOString().split('T')[0])
-        .lte('date', lastDay.toISOString().split('T')[0]);
+        .gte('created_at', firstDay.toISOString())
+        .lte('created_at', lastDay.toISOString());
 
       if (dbError) throw dbError;
 

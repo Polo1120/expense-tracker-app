@@ -18,7 +18,7 @@ export function useHistory() {
                 .from("expenses")
                 .select("*")
                 .eq("user_id", userId)
-                .order("date", { ascending: false });
+                .order("created_at", { ascending: false });
 
             if (filter !== "all") {
                 query = query.eq("type", filter);

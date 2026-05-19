@@ -3,12 +3,12 @@ import { View, StyleSheet } from "react-native";
 import { useAuth } from "../../hooks/useAuth";
 import { Button, Input, Text, useTheme } from "@rneui/themed";
 import { useNavigation } from "@react-navigation/native";
-import type { RootTabNavigationProp } from "../../types/navigation";
+import type { AuthStackNavigationProp } from "../../types/navigation";
 import { isValidEmail } from "../../utils/validators";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function LoginScreen() {
-  const navigation = useNavigation<RootTabNavigationProp>();
+  const navigation = useNavigation<AuthStackNavigationProp>();
   const { theme } = useTheme();
 
   const { login, loading, error } = useAuth();
@@ -84,7 +84,7 @@ export default function LoginScreen() {
           fontWeight: "600",
         },
       }),
-    []
+    [theme]
   );
 
   return (
@@ -112,9 +112,7 @@ export default function LoginScreen() {
 
         {error ? <Text style={styles.generalError}>{error}</Text> : null}
 
-        <Button onPress={handleSubmit} loading={loading}>
-          Log In
-        </Button>
+        <Button title="Log In" onPress={handleSubmit} loading={loading} />
 
         <Text style={styles.switchText} onPress={handleSignUp}>
           Don’t have an account? <Text style={styles.link}>Sign up</Text>

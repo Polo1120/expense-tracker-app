@@ -27,7 +27,7 @@ const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ setThemeMode }) => {
     setThemeMode(theme);
     await AsyncStorage.setItem('hasSeenWelcomeScreen', 'true');
     await AsyncStorage.setItem('themeMode', theme);
-    navigation.navigate('App'); 
+    navigation.replace('App'); 
   };
 
   const toggleSwitch = () => setIsDarkMode(previousState => !previousState);

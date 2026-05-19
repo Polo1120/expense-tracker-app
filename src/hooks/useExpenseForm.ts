@@ -73,7 +73,7 @@ export function useExpenseForm() {
 
       const expenseData = {
         ...formData,
-        user_id: userId, // Changed user to user_id to match Supabase convention
+        user_id: userId, 
       };
 
       const { error: insertError } = await supabase
